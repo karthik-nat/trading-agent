@@ -1,0 +1,13 @@
+# Phase 0 dependencies (plumbing only).
+# Later phases add: pandas-ta, backtesting.py/vectorbt, quantstats, streamlit,
+# pandas_market_calendars, alpaca — installed when their phase begins, not before.
+#
+# Pinned to versions verified on Python 3.11.
+
+pandas==2.2.3        # dataframes / price history
+pyarrow==24.0.0      # parquet engine
+PyYAML==6.0.3        # rulebook.yaml / universe.yaml loading
+yfinance==1.4.1      # free market-data provider (swappable adapter)
+
+# --- testing ---
+pytest==8.3.5

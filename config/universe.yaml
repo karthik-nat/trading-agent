@@ -1,0 +1,54 @@
+# =============================================================================
+# universe.yaml — SEED test universe (Phase 0)
+# -----------------------------------------------------------------------------
+# A small list of liquid US large-caps used to exercise the data pipeline.
+# This is NOT the tradeable universe — the §3 tradeability gate (min_price,
+# min_avg_dollar_volume, min_market_cap, earnings blackout, etc.) lives in
+# rulebook.yaml and is applied in code in Phase 1 (src/data/universe.py).
+# Sectors are hand-tagged here only so later phases can exercise the §6 sector
+# cap; the authoritative sector source at runtime is rulebook.yaml
+# `universe.sector_source`.
+# =============================================================================
+
+# Broad-market index used as an indicator only (regime/market filter). Never held.
+market_index: "^GSPC"
+
+seed_universe:
+  # --- Information Technology ---
+  - {ticker: AAPL, sector: "Information Technology", name: "Apple"}
+  - {ticker: MSFT, sector: "Information Technology", name: "Microsoft"}
+  - {ticker: NVDA, sector: "Information Technology", name: "NVIDIA"}
+  - {ticker: AVGO, sector: "Information Technology", name: "Broadcom"}
+  - {ticker: CRM,  sector: "Information Technology", name: "Salesforce"}
+  - {ticker: ORCL, sector: "Information Technology", name: "Oracle"}
+  # --- Communication Services ---
+  - {ticker: GOOGL, sector: "Communication Services", name: "Alphabet"}
+  - {ticker: META,  sector: "Communication Services", name: "Meta Platforms"}
+  - {ticker: NFLX,  sector: "Communication Services", name: "Netflix"}
+  - {ticker: DIS,   sector: "Communication Services", name: "Walt Disney"}
+  # --- Consumer Discretionary ---
+  - {ticker: AMZN, sector: "Consumer Discretionary", name: "Amazon"}
+  - {ticker: TSLA, sector: "Consumer Discretionary", name: "Tesla"}
+  - {ticker: HD,   sector: "Consumer Discretionary", name: "Home Depot"}
+  - {ticker: NKE,  sector: "Consumer Discretionary", name: "Nike"}
+  # --- Consumer Staples ---
+  - {ticker: COST, sector: "Consumer Staples", name: "Costco"}
+  - {ticker: PG,   sector: "Consumer Staples", name: "Procter & Gamble"}
+  - {ticker: KO,   sector: "Consumer Staples", name: "Coca-Cola"}
+  # --- Financials ---
+  - {ticker: JPM, sector: "Financials", name: "JPMorgan Chase"}
+  - {ticker: V,   sector: "Financials", name: "Visa"}
+  - {ticker: MA,  sector: "Financials", name: "Mastercard"}
+  - {ticker: BAC, sector: "Financials", name: "Bank of America"}
+  # --- Health Care ---
+  - {ticker: UNH, sector: "Health Care", name: "UnitedHealth"}
+  - {ticker: JNJ, sector: "Health Care", name: "Johnson & Johnson"}
+  - {ticker: LLY, sector: "Health Care", name: "Eli Lilly"}
+  - {ticker: ABBV, sector: "Health Care", name: "AbbVie"}
+  # --- Industrials ---
+  - {ticker: CAT, sector: "Industrials", name: "Caterpillar"}
+  - {ticker: HON, sector: "Industrials", name: "Honeywell"}
+  - {ticker: GE,  sector: "Industrials", name: "GE Aerospace"}
+  # --- Energy ---
+  - {ticker: XOM, sector: "Energy", name: "Exxon Mobil"}
+  - {ticker: CVX, sector: "Energy", name: "Chevron"}

@@ -1,0 +1,21 @@
+# --- secrets (never commit) ---
+config/secrets.env
+
+# --- generated data (parquet history + SQLite state) ---
+data/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# --- local editor / tooling settings ---
+.claude/settings.local.json
+
+# --- macOS metadata ---
+.DS_Store
+._*

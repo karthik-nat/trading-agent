@@ -1,0 +1,10 @@
+# crontab.txt — scheduled monitor runs (WIRED IN PHASE 3, not Phase 0)
+#
+# Placeholder only. In Phase 3 these entries call the morning/afternoon
+# entrypoints, each guarded by pandas_market_calendars so they no-op on
+# weekends, holidays, and half-days. Times come from rulebook.yaml `system`
+# (morning_run_local / afternoon_run_local, timezone), not hardcoded here.
+#
+# Example shape (do NOT enable until Phase 3):
+#   30 8  * * 1-5  cd /path/to/trading-agent && python -m scripts.run_morning
+#   45 12 * * 1-5  cd /path/to/trading-agent && python -m scripts.run_afternoon

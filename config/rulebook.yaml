@@ -1,0 +1,132 @@
+# =============================================================================
+# rulebook.yaml — Strategy configuration (single source of truth)
+# Companion to: Strategy Rulebook v1.  Every value here maps to a rulebook section.
+# RULE: no strategy number is ever hardcoded in code. Code reads from this file.
+# Change a value here -> re-run backtest -> only then touch code.
+# =============================================================================
+
+meta:
+  version: "1.0"
+  engine: "trend_pullback"        # primary entry engine (alts: breakout, mean_reversion — deferred)
+  description: "Multi-stock technical swing system, daily bars, long-only US equities"
+
+# -----------------------------------------------------------------------------
+# §3  UNIVERSE / TRADEABILITY GATE  (hard pass/fail filters)
+# -----------------------------------------------------------------------------
+universe:
+  exchanges: ["NYSE", "NASDAQ"]   # US primary-listed common stock only
+  min_price: 10.0                 # USD/share
+  min_avg_dollar_volume: 20000000 # 20-day avg dollar volume, USD
+  min_market_cap: 2000000000      # USD (2B)
+  earnings_blackout_days: 10      # no entry within N calendar days before earnings
+  min_history_days: 250           # trading days required to compute 200-day MA
+  sector_source: "yfinance_info"  # how each ticker's sector is resolved (for §6 sector cap)
+
+# -----------------------------------------------------------------------------
+# §4  REGIME FILTER  (only long, only in uptrends)
+# -----------------------------------------------------------------------------
+regime:
+  trend_ma_long: 200              # SMA period: long-term trend
+  trend_ma_mid: 50                # SMA period: intermediate trend
+  trend_slope_lookback: 20        # 200-SMA must be rising over last N days
+  market_filter_symbol: "^GSPC"   # S&P 500 index, used as indicator only (never held)
+  market_filter_ma: 200           # no NEW longs when market_symbol < its 200-SMA
+
+# -----------------------------------------------------------------------------
+# §5  ENTRY ENGINE — TREND-PULLBACK  (confluence)
+# -----------------------------------------------------------------------------
+entry:
+  trend_ma_short: 20              # SMA used for pullback reference
+  # E1 — pullback to MA
+  pullback_proximity_pct: 2.0     # price within X% of 20-SMA (or tagged 50-SMA)
+  # E2 — RSI turn (trend-following use, NOT the <30 oversold rule)
+  rsi_period: 14
+  rsi_turn_low: 40                # pullback dips into 40..50 zone
+  rsi_turn_high: 50
+  rsi_must_turn_up: true          # today's RSI > yesterday's
+  # E3 — MACD resume
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  macd_prefer_above_zero: true    # stronger when MACD line > 0
+  # E4 — volume confirm
+  volume_avg_period: 20
+  volume_confirm_mult: 1.2        # resumption-day volume >= 1.2x avg
+  # confluence + guard
+  confluence_required: 4          # require all 4 (tuning alt: 3)
+  anti_chase_max_ext_pct: 8.0     # reject if price > X% above 20-SMA (don't chase)
+  # ranking when more candidates than open slots
+  rs_lookback_days: 63            # relative strength vs market, ~3 months
+
+# -----------------------------------------------------------------------------
+# §7  POSITION SIZING  (computed from risk, never guessed)
+# -----------------------------------------------------------------------------
+sizing:
+  risk_per_trade_pct: 1.0         # max loss if stopped at initial stop (start 0.5–1.0)
+  min_position_value: 200.0       # skip dust positions (USD)
+  # NOTE: §6 max_position_pct overrides risk-sizing when it binds
+
+# -----------------------------------------------------------------------------
+# §6  PORTFOLIO CONSTRUCTION / DIVERSIFICATION  (carries the load — no fund ballast)
+# -----------------------------------------------------------------------------
+portfolio:
+  target_positions_min: 8
+  target_positions_max: 12
+  min_positions_full: 6           # below this, hold cash rather than be "fully invested"
+  max_position_pct: 10.0          # max weight per single name, % of account at cost
+  max_sector_pct: 30.0            # the real diversification substitute
+  correlation_threshold: 0.7      # flag new buy if corr > this with an existing holding
+  correlation_lookback_days: 60
+  max_correlated_names: 2         # cap on highly-correlated cluster
+  cash_floor_pct: 5.0
+  max_new_positions_per_day: 2
+
+# -----------------------------------------------------------------------------
+# §8  EXITS  (defined in R-multiples; 1R = entry - initial_stop)
+# -----------------------------------------------------------------------------
+exits:
+  atr_period: 14
+  initial_stop_atr_mult: 1.5      # stop = max(1.5*ATR below entry, recent swing low)
+  use_swing_low: true             # take the tighter of ATR-stop vs swing-low
+  first_scale_r: 2.0              # sell first tranche at +2R
+  first_scale_fraction: 0.5       # sell half
+  breakeven_trigger_r: 1.0        # at +1R, raise stop to entry
+  trail_ma: 20                    # trail under 20-SMA ...
+  trail_atr_mult: 2.5             # ... or 2.5*ATR, whichever applies
+  trend_break_ma: 50              # exit remainder on close < 50-SMA or bearish MACD cross
+  time_stop_days: 20              # exit if not +1R within N trading days
+  time_stop_min_r: 1.0
+
+# -----------------------------------------------------------------------------
+# §9  PORTFOLIO-LEVEL RISK CONTROLS  (override everything else)
+# -----------------------------------------------------------------------------
+risk:
+  dd_circuit_breaker_pct: 15.0    # account -15% from peak -> stop new buys, manage only
+  dd_hard_halt_pct: 25.0          # account -25% from peak -> halt + full review
+  consec_loss_pause: 4            # N stop-outs in a row -> pause new entries
+  consec_loss_pause_days: 3
+  daily_new_risk_cap_pct: 2.0     # total NEW risk opened per day <= X% of account
+  total_heat_cap_pct: 6.0         # sum of open-position risk-to-stops <= X% of account
+
+# -----------------------------------------------------------------------------
+# §11  EXPERIMENT PROTOCOL / GO-LIVE GATE
+# -----------------------------------------------------------------------------
+protocol:
+  go_live_min_trades: 50          # paper/backtest trades required before real money
+  go_live_min_expectancy_r: 0.0   # expectancy must be > 0 after modeled costs
+  model_commission_per_trade: 0.0 # equities commission-free; set if broker differs
+  model_slippage_bps: 5.0         # modeled slippage in basis points (tune to reality)
+
+# -----------------------------------------------------------------------------
+# SYSTEM / EXECUTION  (operational, not strategy)
+# -----------------------------------------------------------------------------
+system:
+  cadence: "twice_daily"          # daily-bar swing; revisit intraday only post-validation
+  morning_run_local: "08:30"      # pre-open: gaps, stops, fresh candidates
+  afternoon_run_local: "12:45"    # near-close: confirm signals on forming close (PT)
+  timezone: "America/Los_Angeles"
+  data_provider: "yfinance"       # -> "alpaca" / "massive" when scaling
+  delayed_data_ok: true           # 15-min delayed fine for daily-bar swing
+  execution_mode: "readonly"      # readonly -> preview -> autonomous (gated by phase)
+  broker_mcp_url: "https://agent.robinhood.com/mcp/trading"
+  agentic_account_only: true      # orders only ever to the ring-fenced agentic account
