@@ -19,9 +19,19 @@ universe, and tests.
 hand-rolled indicators (§5/§8), regime gate (§4), trend-pullback entry (§5),
 risk-based sizing (§7), exits (§8), portfolio caps (§6 + §9 heat), and the
 `engine.py` funnel (§10) that emits ranked BUY/TRIM/EXIT/HOLD recommendations.
-Deterministic and offline — **no backtest, live data, or orders yet** (Phases 2+).
-The §3 tradeability gate (`data/universe.py`, needs market-cap/earnings data) and
-all later-phase modules remain stubs.
+Deterministic and offline. The §3 tradeability gate (`data/universe.py`, needs
+market-cap/earnings data) remains a stub.
+
+**Phase 2 — Backtest & validation harness (built; Gate 1 = NO-GO).** A custom
+event-driven portfolio backtester (`backtest/runner.py`) that replays the exact
+`engine.py` funnel day by day with full §6/§9 caps, next-open fills, and
+slippage/commission, plus `metrics/performance.py` (§11: expectancy, win rate,
+payoff, drawdown, Sharpe/Sortino via quantstats). Harness is complete and tested.
+**Gate 1 result (30 names, 2020–2026, default params): NO-GO** — full-period
+expectancy **−0.08R** over 334 trades, and the edge collapses out-of-sample
+(IS +0.07R → OOS −0.27R). Per the plan we do **not** proceed to Phase 3; the
+strategy needs parameter tuning (config-only) or an engine rethink first.
+Broker/monitor/dashboard/risk-guard modules remain stubs.
 
 ## Layout (Phase 0 implemented; later modules are stubs)
 
@@ -34,9 +44,11 @@ src/      config_loader.py, paths.py
           strategy/    regime, entry_pullback, sizing, exits, portfolio   (Phase 1)
           engine.py    the §10 funnel                  (Phase 1)
           risk/ broker/ monitor/ metrics/ backtest/    (later-phase stubs)
-scripts/  init_db.py, fetch_history.py
-tests/    9 files, 103 tests (config, store, technicals, regime, entry, sizing,
-          exits, portfolio, engine)
+          backtest/    runner.py (event-driven sim)   (Phase 2)
+          metrics/     performance.py                 (Phase 2)
+scripts/  init_db.py, fetch_history.py, run_backtest.py
+tests/    11 files, 116 tests (config, store, technicals, regime, entry, sizing,
+          exits, portfolio, engine, backtest, metrics)
 ```
 
 ## Setup
