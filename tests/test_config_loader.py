@@ -44,6 +44,7 @@ def test_real_rulebook_loads_and_is_typed():
     assert cfg.sizing.risk_per_trade_pct == 1.0
     assert cfg.portfolio.max_position_pct == 10.0
     assert cfg.exits.first_scale_r == 2.0
+    assert cfg.exits.swing_lookback_days == 10
     assert cfg.risk.dd_hard_halt_pct == 25.0
     assert cfg.protocol.go_live_min_trades == 50
     assert cfg.system.execution_mode == "readonly"

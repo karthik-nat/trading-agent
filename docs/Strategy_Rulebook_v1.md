@@ -128,7 +128,7 @@ Every trade is defined in **R-multiples**, where **1R = entry_price − initial_
 
 | Exit | Default | Logic |
 |---|---|---|
-| **Initial stop** | max(1.5 × ATR(14) below entry, recent swing low) — whichever gives the *tighter* sensible stop | Primary risk control. Never widen a stop after entry. |
+| **Initial stop** | max(1.5 × ATR(14) below entry, recent swing low) — whichever gives the *tighter* sensible stop (swing low = lowest low over the last `swing_lookback_days`) | Primary risk control. Never widen a stop after entry. |
 | **First profit scale** | Sell ½ position at **+2R** | Locks in a winner, reduces risk to near-zero on the runner |
 | **Trail the remainder** | Trailing stop = max(close below 20-day SMA, 2.5 × ATR trailing) | Lets winners run while protecting gains |
 | **Trend-break exit** | Exit remainder on close below 50-day SMA **or** bearish MACD cross with price rolling over | Trend is over |
@@ -222,6 +222,7 @@ The system runs on the schedule from the build plan (morning pre-open prep; afte
 | max_new_positions_per_day | 2 | Portfolio |
 | atr_period | 14 | Exit |
 | initial_stop | max(1.5×ATR, swing low) | Exit |
+| swing_lookback_days | 10 | Exit |
 | first_scale | ½ at +2R | Exit |
 | trail_rule | close < 20-SMA or 2.5×ATR | Exit |
 | trend_break_exit | close < 50-SMA or bearish MACD | Exit |

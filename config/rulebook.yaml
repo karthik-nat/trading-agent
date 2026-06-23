@@ -88,6 +88,7 @@ exits:
   atr_period: 14
   initial_stop_atr_mult: 1.5      # stop = max(1.5*ATR below entry, recent swing low)
   use_swing_low: true             # take the tighter of ATR-stop vs swing-low
+  swing_lookback_days: 10         # window for the "recent swing low" structural stop
   first_scale_r: 2.0              # sell first tranche at +2R
   first_scale_fraction: 0.5       # sell half
   breakeven_trigger_r: 1.0        # at +1R, raise stop to entry

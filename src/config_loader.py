@@ -226,6 +226,7 @@ class ExitsConfig:
     atr_period: int
     initial_stop_atr_mult: float
     use_swing_low: bool
+    swing_lookback_days: int
     first_scale_r: float
     first_scale_fraction: float
     breakeven_trigger_r: float
@@ -395,6 +396,7 @@ def _parse_exits(raw: Any) -> ExitsConfig:
         atr_period=s.integer("atr_period", gt=0),
         initial_stop_atr_mult=s.num("initial_stop_atr_mult", gt=0),
         use_swing_low=s.boolean("use_swing_low"),
+        swing_lookback_days=s.integer("swing_lookback_days", gt=0),
         first_scale_r=s.num("first_scale_r", gt=0),
         first_scale_fraction=s.num("first_scale_fraction", gt=0, le=1),
         breakeven_trigger_r=s.num("breakeven_trigger_r", gt=0),

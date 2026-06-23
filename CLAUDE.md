@@ -53,4 +53,6 @@ ETFs, funds, options, crypto; intraday cadence; non-US equities; autonomous exec
 
 ## Current status
 
-**Phase: 0 (not started).** Build only what the current phase prompt asks for.
+**Phase: 2 (in progress).** Phases 0–1 complete: foundations/scaffolding +
+the offline strategy engine (indicators, regime, entry, sizing, exits, portfolio,
+engine), 103 tests passing. Build only what the current phase prompt asks for.

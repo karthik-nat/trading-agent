@@ -11,10 +11,9 @@
 Stateless: every call recomputes from the price path between entry and `asof`,
 using intraday highs to detect "reached +NR". All numbers come from config.
 
-NOTE (open item): "recent swing low" needs a lookback window that is NOT in the
-rulebook §12 table. SWING_LOOKBACK_DAYS below is a documented Phase-1 default
-pending confirmation / promotion to config. The hard-event (earnings) exit is
-deferred — it needs an earnings calendar (a later data-source concern).
+The "recent swing low" window is `exits.swing_lookback_days` (config). The
+hard-event (earnings) exit is deferred — it needs an earnings calendar (a later
+data-source concern).
 """
 from __future__ import annotations
 
@@ -25,9 +24,6 @@ import pandas as pd
 from ..config_loader import Config
 from ..indicators.technicals import atr as atr_ind
 from ..indicators.technicals import macd, sma
-
-# Lookback for the "recent swing low" structural stop (see module NOTE).
-SWING_LOOKBACK_DAYS = 10
 
 # actions
 HOLD = "HOLD"
@@ -74,7 +70,7 @@ def _pos(asof: int, n: int) -> int:
 # --------------------------------------------------------------------------- #
 # Building blocks
 # --------------------------------------------------------------------------- #
-def swing_low(df: pd.DataFrame, *, asof: int = -1, lookback: int = SWING_LOOKBACK_DAYS) -> float:
+def swing_low(df: pd.DataFrame, *, asof: int = -1, lookback: int) -> float:
     low = df["low"].reset_index(drop=True)
     i = _pos(asof, len(low))
     start = max(0, i - lookback + 1)
@@ -93,7 +89,11 @@ def compute_initial_stop(
     a = float(a)
     atr_stop = entry_price - cfg.exits.initial_stop_atr_mult * a
 
-    sl = swing_low(df, asof=asof) if cfg.exits.use_swing_low else float("-inf")
+    sl = (
+        swing_low(df, asof=asof, lookback=cfg.exits.swing_lookback_days)
+        if cfg.exits.use_swing_low
+        else float("-inf")
+    )
     chosen = max(atr_stop, sl)
     method = "swing_low" if (cfg.exits.use_swing_low and sl > atr_stop) else "atr"
     if chosen >= entry_price:        # swing low above entry -> fall back to ATR stop
