@@ -13,22 +13,41 @@ reviews and places every order. See `docs/Strategy_Rulebook_v1.md` (the *what*) 
 
 **Phase 0 — Foundations & scaffolding (complete).** Plumbing only: config loading
 + validation, SQLite/parquet storage, a swappable market-data adapter, a seed
-universe, and tests. **No strategy logic, indicators, or orders yet.**
+universe, and tests.
+
+**Phase 1 — Indicator + strategy engine (complete).** The offline "brain":
+hand-rolled indicators (§5/§8), regime gate (§4), trend-pullback entry (§5),
+risk-based sizing (§7), exits (§8), portfolio caps (§6 + §9 heat), and the
+`engine.py` funnel (§10) that emits ranked BUY/TRIM/EXIT/HOLD recommendations.
+Deterministic and offline — **no backtest, live data, or orders yet** (Phases 2+).
+The §3 tradeability gate (`data/universe.py`, needs market-cap/earnings data) and
+all later-phase modules remain stubs.
 
 ## Layout (Phase 0 implemented; later modules are stubs)
 
 ```
 config/   rulebook.yaml (strategy params), universe.yaml (seed list), secrets.env (gitignored)
 data/     prices/*.parquet (history), trading.db (SQLite state)   [gitignored]
-src/      config_loader.py, paths.py, data/ (market_data, store), + stubs for strategy/risk/broker/...
+src/      config_loader.py, paths.py
+          data/        market_data.py, store.py        (Phase 0)
+          indicators/  technicals.py                   (Phase 1)
+          strategy/    regime, entry_pullback, sizing, exits, portfolio   (Phase 1)
+          engine.py    the §10 funnel                  (Phase 1)
+          risk/ broker/ monitor/ metrics/ backtest/    (later-phase stubs)
 scripts/  init_db.py, fetch_history.py
-tests/    test_config_loader.py, test_store.py
+tests/    9 files, 103 tests (config, store, technicals, regime, entry, sizing,
+          exits, portfolio, engine)
 ```
 
 ## Setup
 
+This project runs in its **own isolated conda env** (kept separate from any other
+environment, so we can install freely here):
+
 ```bash
-pip install -r requirements.txt          # pandas, pyarrow, PyYAML, yfinance, pytest
+conda create -n trading-agent python=3.12
+conda activate trading-agent
+pip install -r requirements.txt          # pandas, numpy, pyarrow, PyYAML, yfinance, pandas-ta, pytest
 ```
 
 ## Phase 0 usage

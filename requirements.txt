@@ -1,13 +1,26 @@
-# Phase 0 dependencies (plumbing only).
-# Later phases add: pandas-ta, backtesting.py/vectorbt, quantstats, streamlit,
-# pandas_market_calendars, alpaca — installed when their phase begins, not before.
+# Dependencies for the trading-agent project.
 #
-# Pinned to versions verified on Python 3.11.
+# ENVIRONMENT: this project uses its OWN isolated conda env (NOT siliconxia):
+#     conda create -n trading-agent python=3.12
+#     conda activate trading-agent
+#     pip install -r requirements.txt
+#
+# Pinned to versions verified on Python 3.12.13.
+# Later phases add: backtesting.py/vectorbt, quantstats, streamlit,
+# pandas_market_calendars, alpaca — installed when their phase begins.
 
-pandas==2.2.3        # dataframes / price history
+pandas==3.0.3        # dataframes / price history
+numpy==2.2.6         # indicator math (pinned for determinism)
 pyarrow==24.0.0      # parquet engine
 PyYAML==6.0.3        # rulebook.yaml / universe.yaml loading
 yfinance==1.4.1      # free market-data provider (swappable adapter)
 
+# NOTE on indicators: the stack named pandas-ta, but it (a) requires Python >=3.12
+# AND breaks on numpy 2.x for older builds, and (b) uses inconsistent, opaque
+# smoothing seeds across indicators (RSI ewm-seeded vs ATR/MACD SMA-seeded), which
+# undermines the hand-checked determinism the Phase 1 gate requires. The 5 needed
+# indicators are therefore hand-rolled in src/indicators/technicals.py with one
+# consistent classic convention (SMA-seeded Wilder / EMA), fully unit-tested.
+
 # --- testing ---
-pytest==8.3.5
+pytest==9.1.1
