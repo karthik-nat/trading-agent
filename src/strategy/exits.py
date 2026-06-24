@@ -6,6 +6,9 @@
   * Breakeven    : once +`breakeven_trigger_r`R is reached, raise stop to entry.
   * Trail        : max(trail_ma SMA, close - trail_atr_mult*ATR), ratcheted up.
   * Trend break  : close < trend_break_ma SMA, OR bearish MACD cross + price rolling over.
+
+The Trail and Trend-break manage "the remainder" (post the +2R first-scale); a
+fresh pre-scale position rides only the initial stop, breakeven move and time stop.
   * Time stop    : exit if not +`time_stop_min_r`R within `time_stop_days` bars.
 
 Stateless: every call recomputes from the price path between entry and `asof`,
@@ -179,12 +182,17 @@ def evaluate_exit(
     reached_1r = max_r >= cfg.exits.breakeven_trigger_r
     reached_scale = max_r >= cfg.exits.first_scale_r
     scale_target = first_scale_target(position.entry_price, position.initial_stop, cfg)
+    # §8: the trail AND the trend-break manage "the remainder" — what is left after
+    # the +2R first-scale. A fresh, pre-scale position rides only the initial stop,
+    # the breakeven move (+1R) and the time stop; it is NOT trend-break-exited on the
+    # first close below the 50-SMA (that prematurely cut trades — see Phase 2 diag).
+    managing_remainder = position.scaled or reached_scale
 
     # ratcheted stop ladder
     stop = position.initial_stop
     if reached_1r:
         stop = max(stop, position.entry_price)                 # breakeven
-    if position.scaled or reached_scale:
+    if managing_remainder:
         ts = trailing_stop(df, cfg, asof=asof)
         if pd.notna(ts):
             stop = max(stop, ts)                               # trail the runner
@@ -195,10 +203,11 @@ def evaluate_exit(
     if close_i <= suggested_stop:
         reasons.append("stop_hit")
         exit_now = True
-    tb, tb_reasons = is_trend_break(df, cfg, asof=asof)
-    if tb:
-        reasons += tb_reasons
-        exit_now = True
+    if managing_remainder:
+        tb, tb_reasons = is_trend_break(df, cfg, asof=asof)
+        if tb:
+            reasons += tb_reasons
+            exit_now = True
     if is_time_stop(bars_held, max_r, cfg):
         reasons.append("time_stop")
         exit_now = True

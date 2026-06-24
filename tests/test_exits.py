@@ -125,14 +125,30 @@ def test_time_stop_exits_when_no_progress():
     assert d.action == EXIT and "time_stop" in d.reason_codes
 
 
-def test_trend_break_below_50sma_exits():
+def test_trend_break_exits_remainder_after_2r():
+    # this trade ran to ~+8R (reached the +2R scale) before the 50-SMA break, so it
+    # is in "remainder management" -> the trend-break exit applies.
     close = np.r_[np.linspace(100, 140, 50), [135.0, 128.0, 120.0, 110.0]]
     df = _ohlc(close)
     broke, reasons = is_trend_break(df, CFG)
     assert broke and "close_below_50sma" in reasons
     pos = Position("TB", entry_price=100.0, initial_stop=95.0, entry_index=10)
     d = evaluate_exit(pos, df, CFG)
+    assert d.max_r >= CFG.exits.first_scale_r                  # reached +2R remainder
     assert d.action == EXIT and "close_below_50sma" in d.reason_codes
+
+
+def test_trend_break_does_not_exit_fresh_pre_scale_position():
+    # §8 fix: a fresh position that never reached +2R must NOT be trend-break-exited
+    # on the first close below the 50-SMA — it rides the initial stop instead.
+    close = np.r_[np.linspace(50, 150, 200), [148.0, 145.0, 140.0, 136.0, 134.0]]
+    df = _ohlc(close)
+    assert is_trend_break(df, CFG)[0] is True                 # the break DID occur
+    pos = Position("FRESH", entry_price=148.0, initial_stop=130.0, entry_index=200)
+    d = evaluate_exit(pos, df, CFG)
+    assert d.max_r < CFG.exits.first_scale_r                  # never scaled
+    assert "close_below_50sma" not in d.reason_codes         # gated off pre-scale
+    assert d.action == HOLD
 
 
 # --------------------------------------------------------------------------- #
